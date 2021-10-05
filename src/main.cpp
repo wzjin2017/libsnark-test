@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 
 #include "libsnark/gadgetlib1/gadget.hpp"
 #include "libsnark/gadgetlib1/protoboard.hpp"
@@ -17,6 +18,7 @@
 
 using namespace libsnark;
 using namespace libff;
+using namespace std;
 
 using std::vector;
 
@@ -181,15 +183,16 @@ int main(int argc, char *argv[]) {
   default_ec_pp::init_public_params();
 
   protoboard<FieldT> pb;
+  std::shared_ptr<digest_variable<FieldT>> result;
+  result.reset(new digest_variable<FieldT>(pb, 256, "result"));
+
+  pb.set_input_sizes(1);
+
 
   pb_variable<FieldT> ZERO;
   ZERO.allocate(pb, "ZERO");
 	pb.val(ZERO) = 0;
 
-  std::shared_ptr<digest_variable<FieldT>> result;
-  result.reset(new digest_variable<FieldT>(pb, 256, "result"));
-
-  pb.set_input_sizes(33);
 
   /*
   std::cout << "SETUP: " << std::endl;
@@ -227,9 +230,57 @@ int main(int argc, char *argv[]) {
   std::cout << "is_satisfied:" << pb.is_satisfied() << std::endl;
 
     const r1cs_ppzksnark_proof<default_r1cs_ppzksnark_pp> proof1 = r1cs_ppzksnark_prover<default_r1cs_ppzksnark_pp>(keypair.pk, pb.primary_input(), pb.auxiliary_input());
+
+
+    //Serialization
+
+    stringstream verifierKey;
+    verifierKey << keypair.vk;
+
+    ofstream fileOut;
+    fileOut.open("verifierKey");
+
+    fileOut << verifierKey.rdbuf();
+    fileOut.close();
+
+    cout << "Saving verifierKey" << endl;
+    //cout << keypair.vk << endl;
+
+    stringstream Proof;
+    Proof << proof1;
+
+ 
+    fileOut.open("Proof");
+
+    fileOut << Proof.rdbuf();
+    fileOut.close();
+
+    cout << "Saving Proof" << endl;
+    //cout << keypair.vk << endl;
+
+    // stringstream y;
+    // y << pb.primary_input();
+
+ 
+    // fileOut.open("y");
+
+    // fileOut << y.rdbuf();
+    // fileOut.close();
+
+    // cout << "Saving y" << endl;
+
+
+
+
+
+
+
+
+
     bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
 
     std::cout << "hash => Verfied: " << verified1 << std::endl;
+    std::cout << "primary_input: " << pb.primary_input() << std::endl;
 
     // std::cout << "primary_input: " << pb.primary_input() << std::endl;
     // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;

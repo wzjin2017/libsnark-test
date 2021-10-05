@@ -1,0 +1,35 @@
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/jinweizhao/disk2/Github/libsnark-test/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_cb35b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_cb35b.dir/build.make CMakeFiles/cmTC_cb35b.dir/build
+make[1]: Entering directory '/home/jinweizhao/disk2/Github/libsnark-test/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_cb35b.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_cb35b.dir/CheckSymbolExists.c.o   -c /home/jinweizhao/disk2/Github/libsnark-test/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_cb35b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cb35b.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_cb35b.dir/CheckSymbolExists.c.o  -o cmTC_cb35b 
+CMakeFiles/cmTC_cb35b.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_cb35b.dir/build.make:97: recipe for target 'cmTC_cb35b' failed
+make[1]: *** [cmTC_cb35b] Error 1
+make[1]: Leaving directory '/home/jinweizhao/disk2/Github/libsnark-test/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_cb35b/fast' failed
+make: *** [cmTC_cb35b/fast] Error 2
+
+File /home/jinweizhao/disk2/Github/libsnark-test/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
