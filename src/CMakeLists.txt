@@ -1,17 +1,17 @@
 include_directories(.)
 
 add_executable(
-  main
+  prover
 
   main.cpp
 )
 target_link_libraries(
-  main
+  prover
 
   snark
 )
 target_include_directories(
-  main
+  prover
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark
@@ -20,17 +20,17 @@ target_include_directories(
 
 
 add_executable(
-  verify
+  verifier
 
   verify.cpp
 )
 target_link_libraries(
-  verify
+  verifier
 
   snark
 )
 target_include_directories(
-  verify
+  verifier
 
   PUBLIC
   ${DEPENDS_DIR}/libsnark

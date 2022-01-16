@@ -181,7 +181,7 @@ vector<unsigned long> bit_list_to_ints(vector<bool> bit_list, const size_t words
 
 int main(int argc, char *argv[]) {
   default_ec_pp::init_public_params();
-  const libff::bit_vector y1 = libff::int_list_to_bits({0xe421ca1e, 0x71d16149, 0x8997ecc3, 0x6d05272a, 0xecc74cc9, 0xf5d071a5, 0x7e743987, 0x1bae758c}, 32);
+  const libff::bit_vector y1 = libff::int_list_to_bits({0xf5a5fd42, 0xd16a2030, 0x2798ef6e, 0xd309979b, 0x43003d23, 0x20d9f0e8, 0xea9831a9, 0x2759fb4b}, 32);
   
 /*
 

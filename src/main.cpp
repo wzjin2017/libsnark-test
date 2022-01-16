@@ -206,8 +206,8 @@ int main(int argc, char *argv[]) {
   for (size_t i = 0; i < a.size(); i++) {
     pb.val(a[i]) = 0;
   }
-  pb.val(a[a.size() - 1]) = 1;
-  pb.val(a[a.size() - 3]) = 1;
+  //pb.val(a[a.size() - 1]) = 1;
+  //pb.val(a[a.size() - 3]) = 1;
 
 
   pb_variable_array<FieldT> b;
