@@ -206,10 +206,10 @@ int main(int argc, char *argv[]) {
     string ints_a;
     string ints_b;
     ifstream nameFilein_a;
-    nameFilein_a.open("../../data/0.secret");
+    nameFilein_a.open("../../../0.secret");
     getline(nameFilein_a, ints_a);
     ifstream nameFilein_b;
-    nameFilein_b.open("../../data/1.secret");
+    nameFilein_b.open("../../../1.secret");
     getline(nameFilein_b, ints_b);
 
 

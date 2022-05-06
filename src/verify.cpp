@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
 
     string ints_y;
     ifstream nameFilein_y;
-    nameFilein_y.open("../../data/y.hash");
+    nameFilein_y.open("../../../y.hash");
     getline(nameFilein_y, ints_y);
     //cout << ints_y.size() << endl;
     vector<long unsigned int> y_hex_vec;
@@ -348,7 +348,7 @@ int main(int argc, char *argv[]) {
 
 
     std::cout << "Reading verifierKey" << std::endl;
-    ifstream fileIn("verifierKey");
+    ifstream fileIn("../../../verifierKey");
     stringstream verifierKeyFromFile;
     if (fileIn) {
        verifierKeyFromFile << fileIn.rdbuf();
@@ -359,7 +359,7 @@ int main(int argc, char *argv[]) {
     verifierKeyFromFile >> keypair.vk;
 
     std::cout << "Reading Proof" << std::endl;
-    ifstream fileIn1("Proof");
+    ifstream fileIn1("../../../Proof");
     stringstream ProofFromFile;
     if (fileIn1) {
        ProofFromFile << fileIn1.rdbuf();
@@ -384,7 +384,9 @@ int main(int argc, char *argv[]) {
     bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
 
     std::cout << "hash => Verfied: " << verified1 << std::endl;
-
+    if(!verified1){
+        return -1;
+    }
     //std::cout << "primary_input: " << pb.primary_input() << std::endl;
     // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
 
