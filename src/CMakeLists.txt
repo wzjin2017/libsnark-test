@@ -1,5 +1,25 @@
 include_directories(.)
 
+
+add_executable(
+  keygen
+
+  keygen.cpp
+)
+target_link_libraries(
+  keygen
+
+  snark
+)
+target_include_directories(
+  keygen
+
+  PUBLIC
+  ${DEPENDS_DIR}/libsnark
+  ${DEPENDS_DIR}/libsnark/depends/libfqfft
+)
+
+
 add_executable(
   prover
 
@@ -36,6 +56,9 @@ target_include_directories(
   ${DEPENDS_DIR}/libsnark
   ${DEPENDS_DIR}/libsnark/depends/libfqfft
 )
+
+
+
 
 
 add_executable(gensecret gensecret.cpp)

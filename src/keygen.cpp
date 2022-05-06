@@ -181,90 +181,76 @@ vector<unsigned long> bit_list_to_ints(vector<bool> bit_list, const size_t words
 }
 
 int main(int argc, char *argv[]) {
-    default_ec_pp::init_public_params();
+  default_ec_pp::init_public_params();
 
-    protoboard<FieldT> pb;
-    std::shared_ptr<digest_variable<FieldT>> result;
-    result.reset(new digest_variable<FieldT>(pb, 256, "result"));
+  protoboard<FieldT> pb;
+  std::shared_ptr<digest_variable<FieldT>> result;
+  result.reset(new digest_variable<FieldT>(pb, 256, "result"));
 
-    pb.set_input_sizes(1);
-
-
-    pb_variable<FieldT> ZERO;
-    ZERO.allocate(pb, "ZERO");
-    pb.val(ZERO) = 0;
+  pb.set_input_sizes(1);
 
 
-    /*
-    std::cout << "SETUP: " << std::endl;
-    std::cout << pb.val(ZERO).as_ulong() << std::endl;
-    std::cout << pb.val(ONE).as_ulong() << std::endl;
-    std::cout << std::endl;
-    */
-
- 
-    string ints_a;
-    string ints_b;
-    ifstream nameFilein_a;
-    nameFilein_a.open("../../data/0.secret");
-    getline(nameFilein_a, ints_a);
-    ifstream nameFilein_b;
-    nameFilein_b.open("../../data/1.secret");
-    getline(nameFilein_b, ints_b);
+  pb_variable<FieldT> ZERO;
+  ZERO.allocate(pb, "ZERO");
+	pb.val(ZERO) = 0;
 
 
+  /*
+  std::cout << "SETUP: " << std::endl;
+  std::cout << pb.val(ZERO).as_ulong() << std::endl;
+  std::cout << pb.val(ONE).as_ulong() << std::endl;
+  std::cout << std::endl;
+  */
+
+  pb_variable_array<FieldT> a;
+	a.allocate(pb, 256, "a");
+  for (size_t i = 0; i < a.size(); i++) {
+    pb.val(a[i]) = 0;
+  }
+  //pb.val(a[a.size() - 1]) = 1;
+  //pb.val(a[a.size() - 3]) = 1;
 
 
-    pb_variable_array<FieldT> a;
-    a.allocate(pb, 256, "a");
-    for (size_t i = 0; i < a.size(); i++) {
-    pb.val(a[i]) = (int)ints_a[i] - 48;
-    //pb.val(a[i]) = 0;
-    }
-    //pb.val(a[a.size() - 1]) = 1;
-    //pb.val(a[a.size() - 3]) = 1;
+  pb_variable_array<FieldT> b;
+	b.allocate(pb, 256, "b");
+  for (size_t i = 0; i < b.size(); i++) {
+    pb.val(b[i]) = 0;
+  }
 
-
-    pb_variable_array<FieldT> b;
-    b.allocate(pb, 256, "b");
-    for (size_t i = 0; i < b.size(); i++) {
-    pb.val(b[i]) = (int)ints_b[i] - 48;
-    //pb.val(b[i]) = 1;
-    }
-
-    ethereum_sha256 g(pb, ZERO, a, b, result);
-    g.generate_r1cs_constraints();
+  ethereum_sha256 g(pb, ZERO, a, b, result);
+	g.generate_r1cs_constraints();
 
     const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
     const r1cs_ppzksnark_keypair<default_r1cs_ppzksnark_pp> keypair = r1cs_ppzksnark_generator<default_r1cs_ppzksnark_pp>(constraint_system);
-
+    
     // std::cout << "pk: " << keypair.pk << std::endl;
     // std::cout << "vk: " << keypair.vk << std::endl;
 
-    g.generate_r1cs_witness();
+	g.generate_r1cs_witness();
 
     std::cout << "is_satisfied:" << pb.is_satisfied() << std::endl;
 
-
-    // //Reading in proving key
-    // r1cs_ppzksnark_keypair<default_r1cs_ppzksnark_pp> keypair;
-    // std::cout << "Reading proverKey" << std::endl;
-    // ifstream fileIn("proverKey");
-    // stringstream proverKeyFromFile;
-    // if (fileIn) {
-    //    proverKeyFromFile << fileIn.rdbuf();
-    //    fileIn.close();
-    // }
-    // proverKeyFromFile >> keypair.pk;
-
-    const r1cs_ppzksnark_proof<default_r1cs_ppzksnark_pp> proof1 = r1cs_ppzksnark_prover<default_r1cs_ppzksnark_pp>(keypair.pk, pb.primary_input(), pb.auxiliary_input());
+    //const r1cs_ppzksnark_proof<default_r1cs_ppzksnark_pp> proof1 = r1cs_ppzksnark_prover<default_r1cs_ppzksnark_pp>(keypair.pk, pb.primary_input(), pb.auxiliary_input());
 
 
     //Serialization
+    stringstream proverKey;
+    proverKey << keypair.pk;
+
     ofstream fileOut;
+    fileOut.open("proverKey");
+
+    fileOut << proverKey.rdbuf();
+    fileOut.close();
+
+    cout << "Saving proverKey" << endl;
+    //cout << keypair.vk << endl;
+
+
     stringstream verifierKey;
     verifierKey << keypair.vk;
 
+    
     fileOut.open("verifierKey");
 
     fileOut << verifierKey.rdbuf();
@@ -273,22 +259,24 @@ int main(int argc, char *argv[]) {
     cout << "Saving verifierKey" << endl;
     //cout << keypair.vk << endl;
 
-    stringstream Proof;
-    Proof << proof1;
+    // stringstream Proof;
+    // Proof << proof1;
+
+ 
+    // fileOut.open("Proof");
+
+    // fileOut << Proof.rdbuf();
+    // fileOut.close();
+
+    // cout << "Saving Proof" << endl;
 
 
-    fileOut.open("Proof");
-
-    fileOut << Proof.rdbuf();
-    fileOut.close();
-
-    cout << "Saving Proof" << endl;
     //cout << keypair.vk << endl;
 
     // stringstream y;
     // y << pb.primary_input();
 
-
+ 
     // fileOut.open("y");
 
     // fileOut << y.rdbuf();
@@ -297,25 +285,32 @@ int main(int argc, char *argv[]) {
     // cout << "Saving y" << endl;
 
 
-    bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
 
-    std::cout << "hash => Verfied: " << verified1 << std::endl;
-    std::cout << "primary_input: " << pb.primary_input() << std::endl;
+
+
+
+
+
+
+    // bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
+
+    // std::cout << "hash => Verfied: " << verified1 << std::endl;
+    // std::cout << "primary_input: " << pb.primary_input() << std::endl;
 
     // std::cout << "primary_input: " << pb.primary_input() << std::endl;
     // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
 
-    auto ints = bit_list_to_ints(result->get_digest(), 32);
-    for (size_t i = 0; i < ints.size(); i++) {
-    std::cout << std::hex << ints[i] << std::endl;
-    }
+  // auto ints = bit_list_to_ints(result->get_digest(), 32);
+  // for (size_t i = 0; i < ints.size(); i++) {
+  //   std::cout << std::hex << ints[i] << std::endl;
+  // }
 
-    auto digest = result->get_digest();
-    for (size_t i = 0; i < digest.size(); i++) {
-    //std::cout << (digest[i] ? 1 : 0) << ",";
-    }
+  // auto digest = result->get_digest();
+  // for (size_t i = 0; i < digest.size(); i++) {
+  //   //std::cout << (digest[i] ? 1 : 0) << ",";
+  // }
 
-    std::cout << std::dec << pb.get_constraint_system().num_constraints() << std::endl;
+  std::cout << std::dec << pb.get_constraint_system().num_constraints() << std::endl;
 
-    return 0;
+  return 0;
 }

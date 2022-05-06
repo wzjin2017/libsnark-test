@@ -7,6 +7,7 @@
 #include <vector>
 #include <array>
 #include <typeinfo>
+#include <string>
 
 using namespace std;
 

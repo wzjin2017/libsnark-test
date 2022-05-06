@@ -1,6 +1,14 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <string>
+#include <list>
+#include <initializer_list>
+#include <stdexcept>
+#include <type_traits>
+#include <vector>
+#include <sstream>
+#include <iomanip>
 
 #include "libsnark/gadgetlib1/gadget.hpp"
 #include "libsnark/gadgetlib1/protoboard.hpp"
@@ -21,6 +29,51 @@ using namespace libff;
 using namespace std;
 
 using std::vector;
+
+
+namespace __range_to_initializer_list {
+
+    constexpr size_t DEFAULT_MAX_LENGTH = 128;
+
+    template <typename V> struct backingValue { static V value; };
+    template <typename V> V backingValue<V>::value;
+
+    template <typename V, typename... Vcount> struct backingList { static std::initializer_list<V> list; };
+    template <typename V, typename... Vcount>
+    std::initializer_list<V> backingList<V, Vcount...>::list = {(Vcount)backingValue<V>::value...};
+
+    template <size_t maxLength, typename It, typename V = typename It::value_type, typename... Vcount>
+    static typename std::enable_if< sizeof...(Vcount) >= maxLength,
+    std::initializer_list<V> >::type generate_n(It begin, It end, It current)
+    {
+        throw std::length_error("More than maxLength elements in range.");
+    }
+
+    template <size_t maxLength = DEFAULT_MAX_LENGTH, typename It, typename V = typename It::value_type, typename... Vcount>
+    static typename std::enable_if< sizeof...(Vcount) < maxLength,
+    std::initializer_list<V> >::type generate_n(It begin, It end, It current)
+    {
+        if (current != end)
+            return generate_n<maxLength, It, V, V, Vcount...>(begin, end, ++current);
+
+        current = begin;
+        for (auto it = backingList<V,Vcount...>::list.begin();
+             it != backingList<V,Vcount...>::list.end();
+             ++current, ++it)
+            *const_cast<V*>(&*it) = *current;
+
+        return backingList<V,Vcount...>::list;
+    }
+
+}
+
+template <typename It>
+std::initializer_list<typename It::value_type> range_to_initializer_list(It begin, It end)
+{
+    return __range_to_initializer_list::generate_n(begin, end, begin);
+}
+
+
 
 typedef libff::Fr<libff::default_ec_pp> FieldT;
 
@@ -180,49 +233,75 @@ vector<unsigned long> bit_list_to_ints(vector<bool> bit_list, const size_t words
 }
 
 int main(int argc, char *argv[]) {
-  default_ec_pp::init_public_params();
-  const libff::bit_vector y1 = libff::int_list_to_bits({0xf5a5fd42, 0xd16a2030, 0x2798ef6e, 0xd309979b, 0x43003d23, 0x20d9f0e8, 0xea9831a9, 0x2759fb4b}, 32);
-  
-/*
+    default_ec_pp::init_public_params();
+
+
+    string ints_y;
+    ifstream nameFilein_y;
+    nameFilein_y.open("../../data/y.hash");
+    getline(nameFilein_y, ints_y);
+    //cout << ints_y.size() << endl;
+    vector<long unsigned int> y_hex_vec;
+    
+    for(int i =0; i < 8; i++){
+        long unsigned int temp_byte;
+        string temp_string = ints_y.substr(8*i, 8);
+        cout << temp_string << endl;
+        // temp_byte = (long unsigned int)stoll(temp_string, nullptr, 16);
+        std::istringstream converter(temp_string);
+        converter >> std::hex >> temp_byte;
+        cout << temp_byte << endl;
+        y_hex_vec.push_back(temp_byte);
+    }
+    
+    //y_hex_vec = {0xf5a5fd42, 0xd16a2030, 0x2798ef6e, 0xd309979b, 0x43003d23, 0x20d9f0e8, 0xea9831a9, 0x2759fb4b};
+    std::initializer_list<long unsigned int> y_hex_list = range_to_initializer_list(y_hex_vec.begin(), y_hex_vec.end());
+    const std::initializer_list<long unsigned int> &y_ref = y_hex_list;
+    const libff::bit_vector y1 = libff::int_list_to_bits(y_ref, 32);
+
+    //const libff::bit_vector y1 = libff::int_list_to_bits({0xf5a5fd42, 0xd16a2030, 0x2798ef6e, 0xd309979b, 0x43003d23, 0x20d9f0e8, 0xea9831a9, 0x2759fb4b}, 32);
+    //const libff::bit_vector y1 = libff::int_list_to_bits({0xbba91ca8, 0x5dc914b2, 0xec3efb9e, 0x16e7267b, 0xf9193b14, 0x350d20fb, 0xa8a8b406, 0x730ae30a}, 32);
+
+    /*
 
 
 
-  protoboard<FieldT> pb;
-  std::shared_ptr<digest_variable<FieldT>> result;
-  result.reset(new digest_variable<FieldT>(pb, 256, "result"));
+    protoboard<FieldT> pb;
+    std::shared_ptr<digest_variable<FieldT>> result;
+    result.reset(new digest_variable<FieldT>(pb, 256, "result"));
 
-  pb.set_input_sizes(1);
+    pb.set_input_sizes(1);
 
 
-  pb_variable<FieldT> ZERO;
-  ZERO.allocate(pb, "ZERO");
+    pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb, "ZERO");
     pb.val(ZERO) = 0;
 
 
-  
- 
 
-  pb_variable_array<FieldT> a;
+
+
+    pb_variable_array<FieldT> a;
     a.allocate(pb, 256, "a");
-  for (size_t i = 0; i < a.size(); i++) {
+    for (size_t i = 0; i < a.size(); i++) {
     pb.val(a[i]) = 0;
-  }
-  pb.val(a[a.size() - 1]) = 1;
-  pb.val(a[a.size() - 3]) = 1;
+    }
+    pb.val(a[a.size() - 1]) = 1;
+    pb.val(a[a.size() - 3]) = 1;
 
 
-  pb_variable_array<FieldT> b;
+    pb_variable_array<FieldT> b;
     b.allocate(pb, 256, "b");
-  for (size_t i = 0; i < b.size(); i++) {
+    for (size_t i = 0; i < b.size(); i++) {
     pb.val(b[i]) = 0;
-  }
+    }
 
-  ethereum_sha256 g(pb, ZERO, a, b, result);
+    ethereum_sha256 g(pb, ZERO, a, b, result);
     g.generate_r1cs_constraints();
 
     const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
     const r1cs_ppzksnark_keypair<default_r1cs_ppzksnark_pp> keypair1 = r1cs_ppzksnark_generator<default_r1cs_ppzksnark_pp>(constraint_system);
-    
+
     // std::cout << "pk: " << keypair.pk << std::endl;
     // std::cout << "vk: " << keypair.vk << std::endl;
 
@@ -230,33 +309,33 @@ int main(int argc, char *argv[]) {
     */
 
 
-  protoboard<FieldT> pb;
-  std::shared_ptr<digest_variable<FieldT>> result;
-  result.reset(new digest_variable<FieldT>(pb, 256, "result"));
+    protoboard<FieldT> pb;
+    std::shared_ptr<digest_variable<FieldT>> result;
+    result.reset(new digest_variable<FieldT>(pb, 256, "result"));
 
-  pb.set_input_sizes(1);
-
-
-
-  pb_variable<FieldT> ZERO;
-  ZERO.allocate(pb, "ZERO");
-	pb.val(ZERO) = 0;
+    pb.set_input_sizes(1);
 
 
 
+    pb_variable<FieldT> ZERO;
+    ZERO.allocate(pb, "ZERO");
+    pb.val(ZERO) = 0;
 
-  pb_variable_array<FieldT> a;
-	a.allocate(pb, 256, "a");
 
 
 
-  pb_variable_array<FieldT> b;
-	b.allocate(pb, 256, "b");
+    pb_variable_array<FieldT> a;
+    a.allocate(pb, 256, "a");
+
+
+
+    pb_variable_array<FieldT> b;
+    b.allocate(pb, 256, "b");
 
     //auto y2 = from_bits(y1, ZERO);
-      for (size_t i = 0; i < y1.size(); i++){
-    pb.val(result->bits[i]) = y1[i]; 
-  } 
+    for (size_t i = 0; i < y1.size(); i++){
+        pb.val(result->bits[i]) = y1[i]; 
+    } 
 
     ethereum_sha256 g(pb, ZERO, a, b, result);
     g.generate_r1cs_constraints();
@@ -266,7 +345,7 @@ int main(int argc, char *argv[]) {
 
     r1cs_ppzksnark_keypair<default_r1cs_ppzksnark_pp> keypair;
     r1cs_ppzksnark_proof<default_r1cs_ppzksnark_pp> proof1;
- 
+
 
     std::cout << "Reading verifierKey" << std::endl;
     ifstream fileIn("verifierKey");
@@ -275,7 +354,7 @@ int main(int argc, char *argv[]) {
        verifierKeyFromFile << fileIn.rdbuf();
        fileIn.close();
     }
-    
+
 
     verifierKeyFromFile >> keypair.vk;
 
@@ -302,18 +381,18 @@ int main(int argc, char *argv[]) {
 
 
 
- bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
+    bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
 
     std::cout << "hash => Verfied: " << verified1 << std::endl;
 
-    std::cout << "primary_input: " << pb.primary_input() << std::endl;
+    //std::cout << "primary_input: " << pb.primary_input() << std::endl;
     // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
 
-  // auto ints = bit_list_to_ints(result->get_digest(), 32);
-  // for (size_t i = 0; i < ints.size(); i++) {
-  //   std::cout << std::hex << ints[i] << std::endl;
-  // }
+    // auto ints = bit_list_to_ints(result->get_digest(), 32);
+    // for (size_t i = 0; i < ints.size(); i++) {
+    //   std::cout << std::hex << ints[i] << std::endl;
+    // }
 
 
-  return 0;
+    return 0;
 }

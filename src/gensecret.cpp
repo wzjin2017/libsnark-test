@@ -63,31 +63,31 @@ int main(int argc, char *argv[]) {
     }
 
       
-      char preimage [64];
-      for (int i = 0; i < 32; i++){
+    char preimage [64];
+    for (int i = 0; i < 32; i++){
         preimage[i] = (char)X[0][i];
-      }
-      for (int i = 0; i < 32; i++){
+    }
+    for (int i = 0; i < 32; i++){
         preimage[i+32] = (char)X[1][i];
 
-      }
+    }
 
-      string preimage1 = "";
-      for (int i = 0; i < 64; i++){
+    string preimage1 = "";
+    for (int i = 0; i < 64; i++){
         preimage1 = preimage1 + preimage[i];
-      }
+    }
 
 
-        string y;
-      for (int i = 0; i < atoi(argv[1] - 1); i++) {
-      
-      y = sha256(preimage1); 
+    string y;
+    for (int i = 0; i < atoi(argv[1] - 1); i++) {
+
+        y = sha256(preimage1); 
 
     }
-          ofstream myfile;
-      myfile.open (fpath + "y", ios::out);
-      myfile << y;
-      myfile.close();
+    ofstream myfile;
+    myfile.open (fpath + "y", ios::out);
+    myfile << y;
+    myfile.close();
 
     // // generate hashes y
     // int Y[8];
