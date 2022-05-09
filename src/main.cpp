@@ -305,17 +305,31 @@ int main(int argc, char *argv[]) {
     // std::cout << "primary_input: " << pb.primary_input() << std::endl;
     // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
 
+
+
+
+    ofstream myfile_hash;
+    myfile_hash.open ("proof.hash");
+    cout << "Saving proof hash." << endl;
+  
+
+
     auto ints = bit_list_to_ints(result->get_digest(), 32);
-    for (size_t i = 0; i < ints.size(); i++) {
-    std::cout << std::hex << ints[i] << std::endl;
+    for (size_t i = 0; i < ints.size()-1; i++) {
+        std::cout << std::hex << ints[i] << std::endl;
+        myfile_hash << std::hex << ints[i];
     }
+    myfile_hash.close();
 
-    auto digest = result->get_digest();
-    for (size_t i = 0; i < digest.size(); i++) {
-    //std::cout << (digest[i] ? 1 : 0) << ",";
-    }
 
-    std::cout << std::dec << pb.get_constraint_system().num_constraints() << std::endl;
+    // cout << "break" << endl;
+
+    // auto digest = result->get_digest();
+    // for (size_t i = 0; i < digest.size(); i++) {
+    // std::cout << (digest[i] ? 1 : 0) << ",";
+    // }
+
+    //std::cout << std::dec << pb.get_constraint_system().num_constraints() << std::endl;
 
     return 0;
 }
