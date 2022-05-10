@@ -333,12 +333,14 @@ int main(int argc, char *argv[]) {
     b.allocate(pb, 256, "b");
 
     //auto y2 = from_bits(y1, ZERO);
+
     for (size_t i = 0; i < y1.size(); i++){
         pb.val(result->bits[i]) = y1[i]; 
     } 
 
     ethereum_sha256 g(pb, ZERO, a, b, result);
     g.generate_r1cs_constraints();
+    //g.generate_r1cs_witness();
 
     const r1cs_constraint_system<FieldT> constraint_system = pb.get_constraint_system();
 
@@ -357,6 +359,8 @@ int main(int argc, char *argv[]) {
 
 
     verifierKeyFromFile >> keypair.vk;
+    //r1cs_gg_ppzksnark_processed_verification_key<ppT> pvk = r1cs_gg_ppzksnark_verifier_process_vk<ppT>(keypair.vk);
+
 
     std::cout << "Reading Proof" << std::endl;
     ifstream fileIn1("../../../Proof");
@@ -383,17 +387,21 @@ int main(int argc, char *argv[]) {
 
     bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
 
+    auto ints = bit_list_to_ints(result->get_digest(), 32);
+    for (size_t i = 0; i < ints.size()-1; i++) {
+      std::cout << std::hex << ints[i] << std::endl;
+      // if(ints[i] != y_hex_vec[i]){
+      //   verified1 = false;
+      // }
+    }
+    
     std::cout << "hash => Verfied: " << verified1 << std::endl;
     if(!verified1){
         return -1;
     }
-    //std::cout << "primary_input: " << pb.primary_input() << std::endl;
-    // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
+    std::cout << "primary_input: " << pb.primary_input() << std::endl;
+    //std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
 
-    // auto ints = bit_list_to_ints(result->get_digest(), 32);
-    // for (size_t i = 0; i < ints.size(); i++) {
-    //   std::cout << std::hex << ints[i] << std::endl;
-    // }
 
 
     return 0;

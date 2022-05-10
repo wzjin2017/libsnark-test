@@ -1,14 +1,18 @@
 import hashlib
 import random
 
-filename_a = "data/0.secret"
-filename_b = "data/1.secret"
-filename_c = "data/y.hash"
+filename_a = "0.secret"
+filename_b = "1.secret"
+filename_c = "y.hash"
 token_a = ""
 token_b = ""
-for i in range(256):
-	token_a += str(random.randint(0, 1))
-	token_b += str(random.randint(0, 1))
+# for i in range(256):
+# 	token_a += str(random.randint(0, 1))
+# 	token_b += str(random.randint(0, 1))
+token_a = random.getrandbits(256)
+token_a = format(token_a, 'b').zfill(256)
+token_b = random.getrandbits(256)
+token_b = format(token_b, 'b').zfill(256)
 print(token_a)
 print(token_b)
 #token_a = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"

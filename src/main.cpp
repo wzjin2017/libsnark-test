@@ -301,8 +301,6 @@ int main(int argc, char *argv[]) {
 
     std::cout << "hash => Verfied: " << verified1 << std::endl;
     std::cout << "primary_input: " << pb.primary_input() << std::endl;
-
-    // std::cout << "primary_input: " << pb.primary_input() << std::endl;
     // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
 
 
@@ -316,10 +314,11 @@ int main(int argc, char *argv[]) {
 
     auto ints = bit_list_to_ints(result->get_digest(), 32);
     for (size_t i = 0; i < ints.size()-1; i++) {
-        std::cout << std::hex << ints[i] << std::endl;
-        myfile_hash << std::hex << ints[i];
+        std::cout << std::setw(8) << std::setfill('0') << std::hex << ints[i] << std::endl;
+        myfile_hash << std::setw(8) << std::setfill('0') << std::hex << ints[i];
     }
     myfile_hash.close();
+
 
 
     // cout << "break" << endl;
