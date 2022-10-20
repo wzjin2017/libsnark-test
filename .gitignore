@@ -33,3 +33,9 @@
 
 build
 .vscode/
+
+*.swp
+prover
+verify
+gensecret
+hashtest

@@ -9,6 +9,8 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <stdlib.h>
+#include <getopt.h>
 
 #include "libsnark/gadgetlib1/gadget.hpp"
 #include "libsnark/gadgetlib1/protoboard.hpp"
@@ -46,6 +48,7 @@ namespace __range_to_initializer_list {
     static typename std::enable_if< sizeof...(Vcount) >= maxLength,
     std::initializer_list<V> >::type generate_n(It begin, It end, It current)
     {
+        if (begin != end || current != end){} // unused variable warning
         throw std::length_error("More than maxLength elements in range.");
     }
 
@@ -232,13 +235,50 @@ vector<unsigned long> bit_list_to_ints(vector<bool> bit_list, const size_t words
   return res;
 }
 
-int main(int argc, char *argv[]) {
-    default_ec_pp::init_public_params();
 
+int main(int argc, char *argv[]) {
+
+    const struct option longopts[] =
+    {
+        {"version", no_argument,          0, 'v'},
+        {"help",    no_argument,          0, 'h'},
+        {"file",    required_argument,    0, 'f'},
+        {0,0,0,0},
+    };
+
+    int index;
+    int iarg=0;
+    std::string version = "v0.0.1";
+    std::string hash_file= "proof.hash";
+
+    while(iarg != -1)
+    {
+        iarg = getopt_long(argc, argv, "a:b:c:h", longopts, &index);
+
+        switch (iarg)
+        {
+            case 'h':
+                std::cout << "help menu" << std::endl;
+                std::cout << argc << std::endl;
+                std::cout << argv[0] << std::endl;
+                break;
+
+            case 'v':
+                std::cout << "version: " << version << std::endl;
+                break;
+
+            case 'f':
+                hash_file = optarg;
+                break;
+        }
+    }
+
+
+    default_ec_pp::init_public_params();
 
     string ints_y;
     ifstream nameFilein_y;
-    nameFilein_y.open("../../../y.hash");
+    nameFilein_y.open(hash_file);
     getline(nameFilein_y, ints_y);
     //cout << ints_y.size() << endl;
     vector<long unsigned int> y_hex_vec;

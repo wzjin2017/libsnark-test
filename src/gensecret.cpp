@@ -57,8 +57,8 @@ int main(int argc, char *argv[]) {
         X.push_back(temp);
         
     }
-    for (int i = 0; i < X.size(); i++){
-        for (int j = 0; j < X[i].size(); j++){
+    for (unsigned long i = 0; i < X.size(); i++){
+        for (unsigned long j = 0; j < X[i].size(); j++){
         std::cout << "X: " << X[i][j] << std::endl;}
     }
 

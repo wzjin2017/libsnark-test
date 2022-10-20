@@ -2,6 +2,9 @@
 #include <string>
 #include <fstream>
 #include <string>
+#include <iomanip>
+#include <stdlib.h>
+#include <getopt.h>
 
 #include "libsnark/gadgetlib1/gadget.hpp"
 #include "libsnark/gadgetlib1/protoboard.hpp"
@@ -181,6 +184,53 @@ vector<unsigned long> bit_list_to_ints(vector<bool> bit_list, const size_t words
 }
 
 int main(int argc, char *argv[]) {
+
+    const struct option longopts[] =
+    {
+        {"version", no_argument,          0, 'v'},
+        {"help",    no_argument,          0, 'h'},
+        {"stuff",   required_argument,    0, 's'},
+        {0,0,0,0},
+    };
+
+    int index;
+    int iarg=0;
+
+    std::string secret_0 = "0.secret";
+    std::string secret_1 = "1.secret";
+    std::string proof_hash = "proof.hash";
+    std::string proof_file = "proof";
+    std::string verification_key = "verifyKey";
+
+    while(iarg != -1)
+    {
+        iarg = getopt_long(argc, argv, "a:b:c:h", longopts, &index);
+
+        switch (iarg)
+        {
+            case 'h':
+                std::cout << "help menu" << std::endl;
+                std::cout << argc << std::endl;
+                std::cout << argv[0] << std::endl;
+                break;
+
+            case 'v':
+                std::cout << "version" << std::endl;
+                break;
+
+            case 'a':
+                secret_0 = optarg;
+                break;
+            case 'b':
+                secret_1 = optarg;
+                break;
+            case 'c':
+                proof_hash = optarg;
+                break;
+        }
+    }
+
+
     default_ec_pp::init_public_params();
 
     protoboard<FieldT> pb;
@@ -195,25 +245,14 @@ int main(int argc, char *argv[]) {
     pb.val(ZERO) = 0;
 
 
-    /*
-    std::cout << "SETUP: " << std::endl;
-    std::cout << pb.val(ZERO).as_ulong() << std::endl;
-    std::cout << pb.val(ONE).as_ulong() << std::endl;
-    std::cout << std::endl;
-    */
-
- 
     string ints_a;
     string ints_b;
     ifstream nameFilein_a;
-    nameFilein_a.open("../../../0.secret");
+    nameFilein_a.open(secret_0);
     getline(nameFilein_a, ints_a);
     ifstream nameFilein_b;
-    nameFilein_b.open("../../../1.secret");
+    nameFilein_b.open(secret_1);
     getline(nameFilein_b, ints_b);
-
-
-
 
     pb_variable_array<FieldT> a;
     a.allocate(pb, 256, "a");
@@ -265,7 +304,7 @@ int main(int argc, char *argv[]) {
     stringstream verifierKey;
     verifierKey << keypair.vk;
 
-    fileOut.open("verifierKey");
+    fileOut.open(verification_key);
 
     fileOut << verifierKey.rdbuf();
     fileOut.close();
@@ -277,41 +316,23 @@ int main(int argc, char *argv[]) {
     Proof << proof1;
 
 
-    fileOut.open("Proof");
+    fileOut.open(proof_file);
 
     fileOut << Proof.rdbuf();
     fileOut.close();
 
     cout << "Saving Proof" << endl;
-    //cout << keypair.vk << endl;
-
-    // stringstream y;
-    // y << pb.primary_input();
-
-
-    // fileOut.open("y");
-
-    // fileOut << y.rdbuf();
-    // fileOut.close();
-
-    // cout << "Saving y" << endl;
 
 
     bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
 
     std::cout << "hash => Verfied: " << verified1 << std::endl;
     std::cout << "primary_input: " << pb.primary_input() << std::endl;
-    // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
-
-
-
 
     ofstream myfile_hash;
-    myfile_hash.open ("proof.hash");
+    myfile_hash.open (proof_hash);
     cout << "Saving proof hash." << endl;
   
-
-
     auto ints = bit_list_to_ints(result->get_digest(), 32);
     for (size_t i = 0; i < ints.size()-1; i++) {
         std::cout << std::setw(8) << std::setfill('0') << std::hex << ints[i] << std::endl;
@@ -319,16 +340,6 @@ int main(int argc, char *argv[]) {
     }
     myfile_hash.close();
 
-
-
-    // cout << "break" << endl;
-
-    // auto digest = result->get_digest();
-    // for (size_t i = 0; i < digest.size(); i++) {
-    // std::cout << (digest[i] ? 1 : 0) << ",";
-    // }
-
-    //std::cout << std::dec << pb.get_constraint_system().num_constraints() << std::endl;
 
     return 0;
 }
