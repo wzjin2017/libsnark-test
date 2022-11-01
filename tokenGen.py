@@ -1,37 +1,47 @@
 import hashlib
 import random
 
-filename_a = "0.secret"
-filename_b = "1.secret"
-filename_c = "y.hash"
-token_a = ""
-token_b = ""
-# for i in range(256):
-# 	token_a += str(random.randint(0, 1))
-# 	token_b += str(random.randint(0, 1))
-token_a = random.getrandbits(256)
-token_a = format(token_a, 'b').zfill(256)
-token_b = random.getrandbits(256)
-token_b = format(token_b, 'b').zfill(256)
-print(token_a)
-print(token_b)
-#token_a = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-#token_b = "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
-preimgage = token_a + token_b
-with open(filename_a, 'w') as f:
-	f.write(token_a)
-with open(filename_b, 'w') as f:
-	f.write(token_b)
+class SecretGenerator:
+	def __init__(self, filename_a, filename_b, filename_c):
+		self.filename_s0 = filename_a
+		self.filename_s1 = filename_b
+		self.filename_hash = filename_c
+		self.token_a = ""
+		self.token_a = ""
+		self.preimage = ""
+		self.hash = 0
+	def gensecrets(self):
+		self.token_a = random.getrandbits(256)
+		self.token_a = format(self.token_a, 'b').zfill(256)
+		self.token_b = random.getrandbits(256)
+		self.token_b = format(self.token_b, 'b').zfill(256)
+		print("Secrets: \n")
+		print(self.token_a)
+		print(self.token_b)
+		with open(self.filename_s0, 'w') as f:
+			f.write(self.token_a)
+		with open(self.filename_s1, 'w') as f:
+			f.write(self.token_b)
+	def catsecrets(self):
+		self.preimage = self.token_a + self.token_b
+	def genhash(self):
+		data = '%0128X' % int(self.preimage, 2)
+		self.hash = hashlib.sha256(bytes.fromhex(data))
+		# print the equivalent hexadecimal value.
+		print("The hexadecimal equivalent of SHA256 is : ")
+		print(self.hash.hexdigest())
+		with open(self.filename_hash, 'w') as f:
+			f.write(str(self.hash.hexdigest()))
+		print ("\r")
 
-data = '%0128X' % int(preimgage, 2)
-#print(data)
-# then sending to SHA256()
-result = hashlib.sha256(bytes.fromhex(data))
-  
-# printing the equivalent hexadecimal value.
-print("The hexadecimal equivalent of SHA256 is : ")
-print(result.hexdigest())
-with open(filename_c, 'w') as f:
-	f.write(str(result.hexdigest()))
+if __name__ == "__main__":
+	filename_s0 = "0.secret"
+	filename_s1 = "1.secret"
+	filename_hash = "y.hash"
+	generator = SecretGenerator(filename_s0, filename_s1, filename_hash)
+	generator.gensecrets()
+	generator.catsecrets()
+	generator.genhash()
 
-print ("\r")
+
+
