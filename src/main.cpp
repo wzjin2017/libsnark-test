@@ -2,9 +2,6 @@
 #include <string>
 #include <fstream>
 #include <string>
-#include <iomanip>
-#include <stdlib.h>
-#include <getopt.h>
 
 #include "libsnark/gadgetlib1/gadget.hpp"
 #include "libsnark/gadgetlib1/protoboard.hpp"
@@ -31,10 +28,10 @@ typedef libff::Fr<libff::default_ec_pp> FieldT;
 pb_variable_array<FieldT> from_bits(std::vector<bool> bits, pb_variable<FieldT>& ZERO) {
     pb_variable_array<FieldT> acc;
 
-        for (size_t i = 0; i < bits.size(); i++) {
-            bool bit = bits[i];
-            acc.emplace_back(bit ? ONE : ZERO);
-        }
+		for (size_t i = 0; i < bits.size(); i++) {
+			bool bit = bits[i];
+			acc.emplace_back(bit ? ONE : ZERO);
+		}
 
     return acc;
 }
@@ -171,11 +168,11 @@ public:
 
 vector<unsigned long> bit_list_to_ints(vector<bool> bit_list, const size_t wordsize) {
   vector<unsigned long> res;
-    size_t iterations = bit_list.size()/wordsize+1;
+	size_t iterations = bit_list.size()/wordsize+1;
   for (size_t i = 0; i < iterations; ++i) {
       unsigned long current = 0;
       for (size_t j = 0; j < wordsize; ++j) {
-                    if (bit_list.size() == (i*wordsize+j)) break;
+					if (bit_list.size() == (i*wordsize+j)) break;
           current += (bit_list[i*wordsize+j] * (1ul<<(wordsize-1-j)));
       }
       res.push_back(current);
@@ -183,77 +180,7 @@ vector<unsigned long> bit_list_to_ints(vector<bool> bit_list, const size_t words
   return res;
 }
 
-void print_help(char* argv[]) {
-    fprintf(stderr, "%s help menu:\n", argv[0]);
-    fprintf(stderr, "\t-h: help menu\n");
-    fprintf(stderr, "\t-v: binary version\n");
-    fprintf(stderr, "\t-f: filename to save verification\n");
-}
-
 int main(int argc, char *argv[]) {
-
-
-    const struct option longopts[] =
-    {
-        {"version",      no_argument,          0, 'v'},
-        {"help",         no_argument,          0, 'h'},
-        {"secret 0",     required_argument,    0, 'a'},
-        {"secret 1",     required_argument,    0, 'b'},
-        {"proof",        required_argument,    0, 'p'},
-        {"hash proof",   required_argument,    0, 'x'},
-        {"verify key",   required_argument,    0, 'k'},
-        {0,0,0,0},
-    };
-
-    std::string version = "v0.0.0";
-    int index;
-    int iarg=0;
-
-    std::string secret_0 = "0.secret";
-    std::string secret_1 = "1.secret";
-    std::string proof_hash = "proof.hash";
-    std::string proof_file = "proof";
-    std::string verification_key = "verifyKey";
-
-    while(iarg != -1)
-    {
-        iarg = getopt_long(argc, argv, "vha:b:p:x:k:", longopts, &index);
-
-        switch (iarg)
-        {
-            case 'h':
-                print_help(argv);
-                exit(0);
-
-            case 'v':
-                std::cout << "version: " << version << std::endl;
-                exit(0);
-
-            case 'a':
-                secret_0 = optarg;
-                break;
-            case 'b':
-                secret_1 = optarg;
-                break;
-            case 'p':
-                proof_hash = optarg;
-                break;
-            case 'x':
-                proof_file = optarg;
-                break;
-            case 'k':
-                verification_key = optarg;
-                break;
-        }
-    }
-
-    if (argc < 6) {
-        fprintf(stderr, "%s takes a 5 options option\n", argv[0]);
-        print_help(argv);
-        exit(1);
-    }
-
-
     default_ec_pp::init_public_params();
 
     protoboard<FieldT> pb;
@@ -268,14 +195,25 @@ int main(int argc, char *argv[]) {
     pb.val(ZERO) = 0;
 
 
+    /*
+    std::cout << "SETUP: " << std::endl;
+    std::cout << pb.val(ZERO).as_ulong() << std::endl;
+    std::cout << pb.val(ONE).as_ulong() << std::endl;
+    std::cout << std::endl;
+    */
+
+ 
     string ints_a;
     string ints_b;
     ifstream nameFilein_a;
-    nameFilein_a.open(secret_0);
+    nameFilein_a.open("../../../0.secret");
     getline(nameFilein_a, ints_a);
     ifstream nameFilein_b;
-    nameFilein_b.open(secret_1);
+    nameFilein_b.open("../../../1.secret");
     getline(nameFilein_b, ints_b);
+
+
+
 
     pb_variable_array<FieldT> a;
     a.allocate(pb, 256, "a");
@@ -327,7 +265,7 @@ int main(int argc, char *argv[]) {
     stringstream verifierKey;
     verifierKey << keypair.vk;
 
-    fileOut.open(verification_key);
+    fileOut.open("verifierKey");
 
     fileOut << verifierKey.rdbuf();
     fileOut.close();
@@ -339,23 +277,41 @@ int main(int argc, char *argv[]) {
     Proof << proof1;
 
 
-    fileOut.open(proof_file);
+    fileOut.open("Proof");
 
     fileOut << Proof.rdbuf();
     fileOut.close();
 
     cout << "Saving Proof" << endl;
+    //cout << keypair.vk << endl;
+
+    // stringstream y;
+    // y << pb.primary_input();
+
+
+    // fileOut.open("y");
+
+    // fileOut << y.rdbuf();
+    // fileOut.close();
+
+    // cout << "Saving y" << endl;
 
 
     bool verified1 = r1cs_ppzksnark_verifier_strong_IC<default_r1cs_ppzksnark_pp>(keypair.vk, pb.primary_input(), proof1);
 
     std::cout << "hash => Verfied: " << verified1 << std::endl;
     std::cout << "primary_input: " << pb.primary_input() << std::endl;
+    // std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
+
+
+
 
     ofstream myfile_hash;
-    myfile_hash.open (proof_hash);
+    myfile_hash.open ("proof.hash");
     cout << "Saving proof hash." << endl;
   
+
+
     auto ints = bit_list_to_ints(result->get_digest(), 32);
     for (size_t i = 0; i < ints.size()-1; i++) {
         std::cout << std::setw(8) << std::setfill('0') << std::hex << ints[i] << std::endl;
@@ -363,6 +319,16 @@ int main(int argc, char *argv[]) {
     }
     myfile_hash.close();
 
+
+
+    // cout << "break" << endl;
+
+    // auto digest = result->get_digest();
+    // for (size_t i = 0; i < digest.size(); i++) {
+    // std::cout << (digest[i] ? 1 : 0) << ",";
+    // }
+
+    //std::cout << std::dec << pb.get_constraint_system().num_constraints() << std::endl;
 
     return 0;
 }
