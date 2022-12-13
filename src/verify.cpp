@@ -9,8 +9,6 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
-#include <stdlib.h>
-#include <getopt.h>
 
 #include "libsnark/gadgetlib1/gadget.hpp"
 #include "libsnark/gadgetlib1/protoboard.hpp"
@@ -48,7 +46,6 @@ namespace __range_to_initializer_list {
     static typename std::enable_if< sizeof...(Vcount) >= maxLength,
     std::initializer_list<V> >::type generate_n(It begin, It end, It current)
     {
-        if (begin != end || current != end){} // unused variable warning
         throw std::length_error("More than maxLength elements in range.");
     }
 
@@ -83,10 +80,10 @@ typedef libff::Fr<libff::default_ec_pp> FieldT;
 pb_variable_array<FieldT> from_bits(std::vector<bool> bits, pb_variable<FieldT>& ZERO) {
     pb_variable_array<FieldT> acc;
 
-    for (size_t i = 0; i < bits.size(); i++) {
-        bool bit = bits[i];
-        acc.emplace_back(bit ? ONE : ZERO);
-    }
+		for (size_t i = 0; i < bits.size(); i++) {
+			bool bit = bits[i];
+			acc.emplace_back(bit ? ONE : ZERO);
+		}
 
     return acc;
 }
@@ -222,75 +219,26 @@ public:
 };
 
 vector<unsigned long> bit_list_to_ints(vector<bool> bit_list, const size_t wordsize) {
-    vector<unsigned long> res;
-    size_t iterations = bit_list.size()/wordsize+1;
-    for (size_t i = 0; i < iterations; ++i) {
-        unsigned long current = 0;
-        for (size_t j = 0; j < wordsize; ++j) {
-                    if (bit_list.size() == (i*wordsize+j)) break;
-            current += (bit_list[i*wordsize+j] * (1ul<<(wordsize-1-j)));
-        }
-        res.push_back(current);
-    }
-
-    return res;
-}
-
-void print_help(char* argv[]) {
-    fprintf(stderr, "%s help menu:\n", argv[0]);
-    fprintf(stderr, "\t-h: help menu\n");
-    fprintf(stderr, "\t-v: binary version\n");
-    fprintf(stderr, "\t-f: filename to save verification\n");
+  vector<unsigned long> res;
+	size_t iterations = bit_list.size()/wordsize+1;
+  for (size_t i = 0; i < iterations; ++i) {
+      unsigned long current = 0;
+      for (size_t j = 0; j < wordsize; ++j) {
+					if (bit_list.size() == (i*wordsize+j)) break;
+          current += (bit_list[i*wordsize+j] * (1ul<<(wordsize-1-j)));
+      }
+      res.push_back(current);
+  }
+  return res;
 }
 
 int main(int argc, char *argv[]) {
-
-    if (argc < 2) {
-        fprintf(stderr, "%s takes a single option\n", argv[0]);
-        print_help(argv);
-        exit(1);
-    }
-
-    const struct option longopts[] =
-    {
-        {"version", no_argument,          0, 'v'},
-        {"help",    no_argument,          0, 'h'},
-        {"file",    required_argument,    0, 'f'},
-        {0,0,0,0},
-    };
-
-    int index;
-    int iarg=0;
-
-    std::string version = "v0.0.1";
-    std::string hash_file= "proof.hash";
-
-    while(iarg != -1)
-    {
-        iarg = getopt_long(argc, argv, "vhf:", longopts, &index);
-
-        switch (iarg)
-        {
-            case 'h':
-                print_help(argv);
-                exit(0);
-
-            case 'v':
-                std::cout << "version: " << version << std::endl;
-                exit(0);
-
-            case 'f':
-                hash_file = optarg;
-                break;
-        }
-    }
-
-
     default_ec_pp::init_public_params();
+
 
     string ints_y;
     ifstream nameFilein_y;
-    nameFilein_y.open(hash_file);
+    nameFilein_y.open("../../../y.hash");
     getline(nameFilein_y, ints_y);
     //cout << ints_y.size() << endl;
     vector<long unsigned int> y_hex_vec;
@@ -453,6 +401,8 @@ int main(int argc, char *argv[]) {
     }
     std::cout << "primary_input: " << pb.primary_input() << std::endl;
     //std::cout << "auxiliary_input: " << pb.auxiliary_input() << std::endl;
+
+
 
     return 0;
 }
