@@ -2,8 +2,7 @@ CPP = g++
 CFLAGS  = -g -Wall -Wextra -Werror
 
 
-all: prover verify gensecret hashtest
-
+all: prover verify zktest
 prover: src/main.cpp
 	$(CPP) $(CFLAGS) \
 		-DCURVE_ALT_BN128 \
@@ -28,7 +27,7 @@ verify: src/verify.cpp
 		depends/libsnark/build/depends/libff/libff/libff.a \
 		-lsnark -lgmpxx -lgmp
 
-gensecret: src/gensecret.cpp
+zktest: src/test_zk.cpp
 	$(CPP) $(CFLAGS) \
 		-DCURVE_ALT_BN128 \
 		-Idepends/libsnark/depends/libfqfft \
@@ -36,23 +35,6 @@ gensecret: src/gensecret.cpp
 		-Idepends/libsnark/build/snark/usr/local/include \
 		-Ldepends/libsnark/build/snark/usr/local/lib \
 		-Ldepends/libsnark/build/snark/usr/local/lib \
-		-I/usr/include/openssl \
-		-o gensecret src/gensecret.cpp \
+		-o zktest src/test_zk.cpp \
 		depends/libsnark/build/depends/libff/libff/libff.a \
-		-lsnark -lgmpxx -lgmp -lcrypto
-
-hashtest: src/hashtest.cpp
-	$(CPP) $(CFLAGS) \
-		-DCURVE_ALT_BN128 \
-		-Idepends/libsnark/depends/libfqfft \
-		-Idepends/libsnark/depends/libff \
-		-Idepends/libsnark/build/snark/usr/local/include \
-		-Ldepends/libsnark/build/snark/usr/local/lib \
-		-Ldepends/libsnark/build/snark/usr/local/lib \
-		-I/usr/include/openssl \
-		-o hashtest src/hashtest.cpp \
-		depends/libsnark/build/depends/libff/libff/libff.a \
-		-lsnark -lgmpxx -lgmp -lcrypto
-
-clean:
-	$(RM) prover verify gensecret hashtest
+		-lsnark -lgmpxx -lgmp

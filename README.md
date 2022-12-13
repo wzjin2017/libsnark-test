@@ -11,3 +11,8 @@ DESTDIR=snark make install
 popd
 make
 ```
+## Unit Test
+To test NIZK part with libsnark, run 
+```
+./zktest 0.secret 1.secret proof proof.hash verifyKey
+```
